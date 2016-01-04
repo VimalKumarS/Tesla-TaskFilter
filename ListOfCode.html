@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="./js/bootstrap-treeview.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src=" https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.js" ></script>
+</head>
+<body>
+
+<div class="container">
+    <div class="alert alert-danger" style="display: none" id="alert">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Invalid!</strong> Invalid Input
+    </div>
+    <div class="alert alert-danger" style="display: none" id="sub-task">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Invalid!</strong> sub task are not completed.
+    </div>
+    <div class="row">
+        <h2>Technician report</h2>
+        <hr>
+        <h2>Search for task</h2>
+
+        <div class="col-sm-6">
+            <div class="row">
+                <div class="col-sm-12">
+            <div class="form-inline">
+            <label for="input-check-node" class="sr-only">Search Tree:</label>
+
+
+                <input type="input" class="form-control" id="input-check-node" placeholder="Identify node..."
+                       value="">
+                <button type="button" class="btn btn-success" id="btn-search">Search</button>
+            </div>
+                    </div>
+                <div class="col-sm-12">
+                    <h2>Activity do to:</h2>
+                    <hr>
+                    <div id="treeview-checkable" class=""></div>
+
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-5 col-sm-offset-1" >
+            <h2>Completed task</h2>
+            <hr>
+            <div id="checkable-output"></div>
+        </div>
+
+    </div>
+    <div class="row">
+
+    </div>
+
+</div>
+
+<script>
+
+    var json = [{text: '14456333', nodes: [{text: 13236, nodes: [{text: 55237},{text: 55237},{text: 55237}]}]},{text: 55237}];
+
+    $('#btn-search').on('click', search);
+    var json
+
+    function search() {
+        $("#alert").css({'display':'none'});
+        $("#checkable-output").empty();
+        var pattern = $('#input-check-node').val();
+        var reg = /^\d+$/;
+        if (reg.test(pattern)) {
+
+            $.get('http://localhost:5555/teslamotors/listAllDependency/' + pattern).done(function(data){
+               if(! jQuery.isEmptyObject(data)) {
+                   populateTree([data]);
+               }
+                else
+               {
+                   $('#treeview-checkable').empty();
+               }
+            });
+
+        }
+        else{
+            $("#alert").css({'display':'block'});
+        }
+    }
+
+
+
+
+
+
+    function populateTree(jsonData) {
+        var $checkableTree = $('#treeview-checkable').treeview({
+            data: jsonData,
+            showIcon: false,
+            showCheckbox: true,
+            levels: 1,
+            onNodeChecked: function (event, node) {
+               //Todo:  check for parent event done or not
+                $("#sub-task").css({'display':'none'});
+                if(node.nodes) {
+                  var bflag= false;
+                    for (var i=0; i<node.nodes.length;i++){
+                        if (!node.nodes[i].state.checked){
+                            bflag=true;
+                            break;
+                        }
+                    }
+                }
+                if(bflag){
+                    $("#sub-task").css({'display':'block'});
+
+                   // node.state.checked=false;
+                    $('#treeview-checkable').treeview('uncheckNode', [ node.nodeId, { silent:true }]);
+                }
+                else {
+                    $("#sub-task").css({'display':'none'});
+                    $('#checkable-output').prepend('<p>' + node.text + ' is complete</p>');
+                }
+            },
+            onNodeUnchecked: function (event, node) {
+                $("#sub-task").css({'display':'none'});
+                $('#checkable-output').prepend('<p>' + node.text + ' was incomplete</p>');
+            }
+        });
+    }
+        // $('#treeview-checkable').treeview('collapseAll', { silent: true });
+       /* $('#input-check-node').on('keyup', function (e) {
+            checkableNodes = $checkableTree.treeview('search', [$('#input-check-node').val(), {
+                ignoreCase: false,
+                exactMatch: false
+            }]);
+            $('.check-node').prop('disabled', !(checkableNodes.length >= 1));
+        });*/
+    /*
+     function fetchData(pattern){
+
+     $.get('http://localhost:5555/teslamotors/code_depedencies/' + pattern).done(function(data){
+     var nodetext = [];
+     if($(data).find('children code')) {
+
+     $(data).find('children code').each(function (i, val) {
+
+     nodetext.push({text: $(val).text()});
+     });
+     }
+     return nodetext;
+     });
+     }
+
+     function fetchDependency(pattern,jsondata){
+
+     return $.when(fetchData(pattern)).done(function(nodetext){
+
+     jsondata['nodes']=nodetext;
+     for(var i=0;i<nodetext.length;i++ ) {
+
+     $.when(fetchDependency(jsondata['nodes'][i].text,jsondata['nodes'][i] )).done(function(d){
+
+
+     jsondata['nodes'][i]['nodes'] =d;
+
+     console.log(jsondata);
+
+     });
+
+     }
+
+     });
+
+     }
+     */
+
+</script>
+</body>
+</html>
+
