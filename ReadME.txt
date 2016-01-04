@@ -36,3 +36,7 @@ Functionality
 1) Technician search for code eg 14456
 2) This will list all the sub task to be performed
 3) Check for completion of child task before parent task to be mark as complete.
+
+
+
+![alt tag](https://github.com/VimalKumarS/MemoryGame/blob/master/Capture1.PNG)
